@@ -4,65 +4,94 @@ import { detectSpeaker } from './speakerDetector';
 
 const CHAPTER_RE = /^第[零一二三四五六七八九十百千万\d]+[章节回]/;
 
-const QUOTE_PATTERNS: RegExp[] = [
-  /[""][^""]+[""]/,
-  /"[^"]+"/,
-  /「[^」]+」/,
-  /『[^』]+』/,
+// Quote pairs: [open, close]
+const QUOTE_PAIRS: [string, string][] = [
+  ['“', '”'], // Chinese curly ""
+  ['"', '"'], // ASCII straight ""
+  ['「', '」'], // Japanese 「」
+  ['『', '』'], // Japanese 『』
 ];
 
+const OPEN_QUOTES = new Set(QUOTE_PAIRS.map(p => p[0]));
+const QUOTE_CHARS = new Set(QUOTE_PAIRS.flat());
+
 function hasQuote(line: string): boolean {
-  for (const re of QUOTE_PATTERNS) {
-    if (re.test(line)) return true;
+  for (const [open] of QUOTE_PAIRS) {
+    if (line.includes(open)) return true;
   }
   return false;
 }
 
 function quotedRatio(line: string): number {
-  let quotedChars = 0;
-  for (const re of QUOTE_PATTERNS) {
-    const matches = line.match(re);
-    if (matches) {
-      for (const m of matches) {
-        quotedChars += m.length;
-      }
+  if (!line) return 0;
+  let inside = false;
+  let closeChar = '';
+  let count = 0;
+
+  for (const ch of line) {
+    if (!inside && OPEN_QUOTES.has(ch)) {
+      inside = true;
+      closeChar = QUOTE_PAIRS.find(p => p[0] === ch)?.[1] ?? '';
+      count++;
+    } else if (inside && ch === closeChar) {
+      inside = false;
+      count++;
+    } else if (inside) {
+      count++;
     }
   }
-  return quotedChars / Math.max(line.length, 1);
+  return count / line.length;
 }
 
+/** Strip outermost matching quote pair */
 function stripQuotes(content: string): string {
-  return content
-    .replace(/^[""]/, '')
-    .replace(/[""]$/, '')
-    .replace(/^"/, '')
-    .replace(/"$/, '')
-    .replace(/^「/, '')
-    .replace(/」$/, '')
-    .replace(/^『/, '')
-    .replace(/』$/, '');
+  for (const [open, close] of QUOTE_PAIRS) {
+    if (content.startsWith(open) && content.endsWith(close)) {
+      return content.slice(open.length, content.length - close.length);
+    }
+  }
+  return content;
 }
 
+/** Split a line into quoted and non-quoted segments */
 function splitMixedLine(line: string): string[] {
   const parts: string[] = [];
-  let remaining = line;
-  for (const re of QUOTE_PATTERNS) {
-    const match = remaining.match(re);
-    if (match && match.index !== undefined) {
-      const before = remaining.slice(0, match.index).trim();
-      const quoted = match[0];
-      const after = remaining.slice(match.index! + quoted.length).trim();
-      if (before) parts.push(before);
-      parts.push(quoted);
-      if (after) {
-        const subParts = splitMixedLine(after);
-        parts.push(...subParts);
+  let i = 0;
+  let current = '';
+
+  while (i < line.length) {
+    const ch = line[i];
+    if (OPEN_QUOTES.has(ch)) {
+      if (current.trim()) parts.push(current.trim());
+      current = ch;
+      i++;
+      const pair = QUOTE_PAIRS.find(p => p[0] === ch);
+      const closeCh = pair?.[1] ?? ch;
+      // If open and close are the same char (e.g. ASCII ""), toggle on next occurrence
+      if (ch === closeCh) {
+        while (i < line.length && line[i] !== ch) {
+          current += line[i];
+          i++;
+        }
+        if (i < line.length) { current += line[i]; i++; }
+      } else {
+        let depth = 1;
+        while (i < line.length && depth > 0) {
+          if (line[i] === ch) depth++;
+          else if (line[i] === closeCh) depth--;
+          current += line[i];
+          i++;
+        }
       }
-      return parts;
+      parts.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+      i++;
     }
   }
-  parts.push(remaining);
-  return parts;
+  if (current.trim()) parts.push(current.trim());
+  return parts.length > 0 ? parts : [line];
 }
 
 function classifyLine(line: string): ParagraphType {
@@ -82,7 +111,8 @@ export function parseText(rawText: string): Paragraph[] {
     const line = lines[i];
     const type = classifyLine(line);
 
-    if (type === 'dialogue') {
+    // If line contains quotes, always try to split into mixed segments
+    if (hasQuote(line)) {
       const parts = splitMixedLine(line);
       for (const part of parts) {
         const partType = classifyLine(part);

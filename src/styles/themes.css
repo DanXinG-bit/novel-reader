@@ -10,27 +10,71 @@
   margin-bottom: var(--ps);
 }
 
+/* 旁白 — 正文灰色，左缩进 */
 .narration-block {
-  color: var(--text-secondary);
-  padding: 0 0.5rem;
+  color: var(--text-primary);
+  opacity: 0.75;
+  padding: 0.25rem 1rem;
+  font-style: normal;
+  border-left: 3px solid transparent;
 }
 
+/* 对话 — 彩色气泡，左侧色条 */
 .dialogue-block {
   background: var(--dialogue-bg);
-  border-left: 3px solid var(--dialogue-border);
-  border-radius: 0 8px 8px 0;
-  padding: 0.5rem 0.75rem;
+  border-left: 4px solid var(--dialogue-border);
+  border-radius: 0 12px 12px 0;
+  padding: 0.6rem 1rem;
+  margin-left: 0.25rem;
   margin-bottom: var(--ps);
+  position: relative;
 }
 
+/* 旁白标记 */
+.narration-block::before {
+  content: '旁白';
+  display: block;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.4;
+  margin-bottom: 0.15rem;
+  color: var(--text-secondary);
+}
+
+/* 对话标记 */
+.dialogue-block > .speaker-tag::before {
+  content: '💬 ';
+}
+
+/* 说话者标签 — 大字显眼 */
 .speaker-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--accent);
-  margin-bottom: 0.25rem;
-  cursor: default;
+  margin-bottom: 0.35rem;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: rgba(74, 144, 217, 0.08);
+}
+
+.speaker-tag button {
+  font-size: 0.8rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.speaker-tag button:hover {
+  opacity: 1;
+  background: rgba(74, 144, 217, 0.15);
 }
 
 .speaker-tag.manual {
@@ -38,12 +82,14 @@
 }
 
 .speaker-tag.manual::after {
-  content: '';
+  content: '✓ 已修正';
   display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: #2980b9;
-  border-radius: 50%;
+  font-size: 0.6rem;
+  font-weight: 400;
+  color: #2980b9;
+  background: rgba(41, 128, 185, 0.1);
+  padding: 0 4px;
+  border-radius: 2px;
 }
 
 .title-block {
@@ -52,9 +98,10 @@
   text-align: center;
   margin: 1.5rem 0 1rem;
   color: var(--text-primary);
+  border-bottom: 1px solid var(--bg-secondary);
+  padding-bottom: 0.5rem;
 }
 
-/* Character highlight */
 .character-highlight {
   background-color: rgba(74, 144, 217, 0.15);
   border-radius: 4px;
