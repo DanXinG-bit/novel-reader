@@ -1,0 +1,62 @@
+.reader-container {
+  --fs: 18px;
+  --lh: 1.8;
+  --ps: 16px;
+  font-size: var(--fs);
+  line-height: var(--lh);
+}
+
+.reader-container p {
+  margin-bottom: var(--ps);
+}
+
+.narration-block {
+  color: var(--text-secondary);
+  padding: 0 0.5rem;
+}
+
+.dialogue-block {
+  background: var(--dialogue-bg);
+  border-left: 3px solid var(--dialogue-border);
+  border-radius: 0 8px 8px 0;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: var(--ps);
+}
+
+.speaker-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+  cursor: default;
+}
+
+.speaker-tag.manual {
+  color: #2980b9;
+}
+
+.speaker-tag.manual::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #2980b9;
+  border-radius: 50%;
+}
+
+.title-block {
+  font-weight: 700;
+  font-size: 1.25em;
+  text-align: center;
+  margin: 1.5rem 0 1rem;
+  color: var(--text-primary);
+}
+
+/* Character highlight */
+.character-highlight {
+  background-color: rgba(74, 144, 217, 0.15);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}

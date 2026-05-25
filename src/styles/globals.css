@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #faf8f3;
+  --bg-secondary: #f0ede4;
+  --text-primary: #2c2c2c;
+  --text-secondary: #888;
+  --dialogue-bg: #e8f0fe;
+  --dialogue-border: #4a90d9;
+  --accent: #4a90d9;
+  --font-body: 'LXGW WenKai', serif;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #252525;
+  --text-primary: #e8e6e0;
+  --text-secondary: #666;
+  --dialogue-bg: #1e2d3d;
+  --dialogue-border: #5a9fd4;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  transition: background-color 0.3s, color 0.3s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.font-wenkai { font-family: 'LXGW WenKai', serif; }
+.font-songti { font-family: 'Noto Sans SC', sans-serif; }
+.font-mono  { font-family: 'Noto Sans Mono', monospace; }
