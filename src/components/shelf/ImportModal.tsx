@@ -21,6 +21,16 @@ export function ImportModal({ onClose, onSaved }: Props) {
     setSaving(true);
 
     const paragraphs = parseText(text);
+    console.log('[ImportModal] parsed paragraphs:', paragraphs.length);
+    console.log('[ImportModal] dialogue count:', paragraphs.filter(p => p.type === 'dialogue').length);
+    console.log('[ImportModal] narration count:', paragraphs.filter(p => p.type === 'narration').length);
+    console.log('[ImportModal] first 3:', paragraphs.slice(0, 3).map(p => ({ type: p.type, content: p.content.substring(0, 30) })));
+
+    // Debug: show char codes of first 100 chars
+    const sample = text.substring(0, 100);
+    const codes = [...sample].filter(c => c.charCodeAt(0) > 127).map(c => c + '=U+' + c.charCodeAt(0).toString(16));
+    console.log('[ImportModal] unicode chars:', codes.slice(0, 20));
+
     const speakerMap = buildCharacters(paragraphs);
     const characters: Character[] = Array.from(speakerMap.entries()).map(
       ([name, count], i) => ({

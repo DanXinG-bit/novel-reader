@@ -15,7 +15,7 @@ const FONTS: { key: ReadingSettings['fontFamily']; label: string; className: str
 export function FontPicker({ settings, onUpdate }: Props) {
   return (
     <div
-      className="absolute bottom-full mb-2 left-0 right-0 mx-4 p-4 rounded-xl shadow-lg z-20"
+      className="fixed bottom-16 left-0 right-0 mx-4 p-4 rounded-xl shadow-lg z-20 max-w-sm"
       style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--bg-secondary)' }}
     >
       <div className="flex gap-2 mb-3">

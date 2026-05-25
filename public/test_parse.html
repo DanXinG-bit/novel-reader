@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Parser Test</title></head>
+<body>
+<h2>粘贴文本测试解析</h2>
+<textarea id="input" rows="10" cols="80"></textarea><br>
+<button id="go">解析</button>
+<pre id="output"></pre>
+<script type="module">
+// Copy the parser logic inline
+const QUOTE_PAIRS = [
+  ['“', '”'],
+  ['"', '"'],
+  ['「', '」'],
+  ['『', '』'],
+];
+const OPEN_QUOTES = new Set(QUOTE_PAIRS.map(p => p[0]));
+
+function hasQuote(line) {
+  for (const [open] of QUOTE_PAIRS) if (line.includes(open)) return true;
+  return false;
+}
+function quotedRatio(line) {
+  if (!line) return 0;
+  let inside = false, closeChar = '', count = 0;
+  for (const ch of line) {
+    if (!inside && OPEN_QUOTES.has(ch)) { inside = true; closeChar = QUOTE_PAIRS.find(p => p[0] === ch)?.[1] ?? ''; count++; }
+    else if (inside && ch === closeChar) { inside = false; count++; }
+    else if (inside) { count++; }
+  }
+  return count / line.length;
+}
+function splitMixedLine(line) {
+  const parts = []; let i = 0, current = '';
+  while (i < line.length) {
+    const ch = line[i];
+    if (OPEN_QUOTES.has(ch)) {
+      if (current.trim()) parts.push(current.trim());
+      current = ch; i++;
+      const closeCh = QUOTE_PAIRS.find(p => p[0] === ch)?.[1] ?? ch;
+      if (ch === closeCh) {
+        while (i < line.length && line[i] !== ch) { current += line[i]; i++; }
+        if (i < line.length) { current += line[i]; i++; }
+      } else {
+        let depth = 1;
+        while (i < line.length && depth > 0) {
+          if (line[i] === ch) depth++;
+          else if (line[i] === closeCh) depth--;
+          current += line[i]; i++;
+        }
+      }
+      parts.push(current.trim()); current = '';
+    } else { current += ch; i++; }
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts.length > 0 ? parts : [line];
+}
+function stripQuotes(content) {
+  for (const [open, close] of QUOTE_PAIRS) {
+    if (content.startsWith(open) && content.endsWith(close))
+      return content.slice(open.length, content.length - close.length);
+  }
+  return content;
+}
+
+document.getElementById('go').onclick = () => {
+  const text = document.getElementById('input').value;
+  const out = document.getElementById('output');
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  let result = '';
+  let dCount = 0, nCount = 0;
+  for (const line of lines) {
+    const has = hasQuote(line);
+    const ratio = quotedRatio(line);
+    const type = (has && ratio > 0.5) ? 'DIALOGUE' : 'NARRATION';
+    if (type === 'DIALOGUE') dCount++; else nCount++;
+
+    if (has) {
+      const parts = splitMixedLine(line);
+      for (const part of parts) {
+        const has2 = hasQuote(part);
+        const ratio2 = quotedRatio(part);
+        const t2 = (has2 && ratio2 > 0.5) ? 'DIALOGUE' : 'NARRATION';
+        const clean = t2 === 'DIALOGUE' ? stripQuotes(part) : part;
+        result += t2.padEnd(12) + '| ratio:' + ratio2.toFixed(2) + ' | ' + clean.substring(0,60) + '\n';
+      }
+    } else {
+      result += type.padEnd(12) + '| ratio:' + ratio.toFixed(2) + ' | ' + line.substring(0,60) + '\n';
+    }
+  }
+  result += '\n对话: ' + dCount + '  旁白: ' + nCount;
+  out.textContent = result;
+  // Also show char codes of first few chars
+  let debug = 'Char codes: ';
+  for (let i = 0; i < Math.min(20, text.length); i++) {
+    if (text.charCodeAt(i) > 127) debug += 'U+' + text.charCodeAt(i).toString(16) + ' ';
+  }
+  out.textContent = debug + '\n\n' + result;
+};
+</script>
+</body></html>
